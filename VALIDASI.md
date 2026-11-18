@@ -1,11 +1,17 @@
-# Validasi paket
+# Validasi paket 1.1
 
-- Perhitungan sempurna dan jawaban salah untuk dua mode, empat OPD: lulus.
-- Database lokal libSQL dengan dua migrasi, termasuk menjalankan migrasi ulang: lulus.
-- Buat kelas, empat anggota, kunci pemilihan OPD, waktu bersama, simpan/muat ulang, konflik revisi, kumpulkan, MRI gabungan, detail kesalahan, tutup kelas: lulus.
-- Identitas kosong meskipun header identitas palsu dikirim: ditolak. Peserta tidak dapat mengakses pengelolaan kelas. Pengajar lain tidak dapat mengakses kelas pemilik: lulus.
-- TypeScript dan build produksi Next.js 16.4.6: lulus dengan publishable key dummy khusus pemeriksaan build (tidak disertakan sebagai konfigurasi aplikasi).
-- Belum diuji: login dengan akun Clerk nyata, database Turso cloud milik pengguna, dan deploy di akun Vercel pengguna. Ketiganya memerlukan konfigurasi pemilik.
-- Tidak ada migrasi riwayat kelas dari situs ChatGPT; paket membuat database baru.
+- Dua mode permainan dan empat OPD: jawaban sempurna MRI 5; jawaban salah menghasilkan rincian kesalahan: lulus.
+- Ketiga migrasi libSQL, termasuk menjalankan ulang dan mempertahankan data versi sebelumnya: lulus.
+- Peserta masuk tanpa akun dengan kode kelas: lulus.
+- Cookie acak HttpOnly/SameSite/Secure, token di-hash pada database, cookie palsu dan kedaluwarsa ditolak: lulus.
+- Empat browser memegang empat OPD dalam satu daerah, satu OPD per browser per kelas, muat ulang, konflik revisi, penguncian identifikasi: lulus.
+- Reset oleh pemilik kelas mencabut browser lama; browser pengganti melanjutkan jawaban dan timer yang sama: lulus.
+- Reset setelah pengumpulan mempertahankan hasil dan status terkunci: lulus.
+- Penolakan akses pengajar untuk peserta, kelas milik pengajar lain, permintaan dari origin lain: lulus.
+- MRI kabupaten/kota tersedia setelah 4 OPD selesai dan sesuai rata-rata skor tertimbang: lulus.
+- Kelas ditutup menolak klaim baru/simpan; pengumpulan lewat waktu menilai jawaban tersimpan: lulus.
+- Klaim OPD bersamaan menghasilkan tepat satu pemegang: lulus.
+- Syntax JavaScript, TypeScript, build produksi Next.js 16.4.6: lulus.
+- Belum diuji menggunakan kredensial Clerk, database Turso cloud, atau deployment Vercel pemilik. Pemeriksaan visual browser tidak termasuk validasi paket ini.
 
-Environment pengujian: Node.js 24.22.1. Target package/Vercel: Node.js 22.x.
+Environment pengujian: Node.js 24.22.1; target package/Vercel: Node.js 22.x. Build menggunakan publishable key dummy khusus validasi dan tidak memasukkannya ke konfigurasi yang dikirim.

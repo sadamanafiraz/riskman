@@ -1,14 +1,17 @@
 # Riskman Simulation — GitHub + Vercel
 
+**Versi 1.1 — peserta tanpa login.** Lihat `UPDATE_v1.1.md` untuk memperbarui instalasi lama.
+
 Paket sumber aplikasi, bukan ZIP yang diunggah langsung ke Vercel. Ekstrak ZIP, unggah **isi folder** ke repository GitHub, kemudian import repository di Vercel.
 
 ## Yang tersedia
 
 - Risk Specialist dan Risk Assurer dalam sesi kelas terpisah.
-- Login email pengajar dan peserta melalui Clerk; akun ChatGPT tidak diperlukan.
+- Login email hanya untuk pengajar melalui Clerk. Peserta masuk memakai kode kelas, tanpa akun.
 - Pengajar menambahkan nama kabupaten/kota. Setiap daerah otomatis memiliki empat tugas: Bappeda, BPKAD, PU, PDAM.
-- Empat anggota memakai akun berbeda. Setiap anggota mengambil satu OPD per kelas.
+- Empat anggota memakai perangkat atau profil browser terpisah. Setiap browser mengambil satu OPD per kelas. Sesi peserta tersimpan otomatis selama 30 hari pada browser yang sama.
 - Timer bersama 120 menit sejak anggota pertama bergabung.
+- Reset akses OPD oleh pengajar untuk pergantian perangkat, tanpa menghapus jawaban, hasil, atau waktu mulai.
 - Penyimpanan jawaban, perhitungan di server, dan dashboard detail kesalahan.
 - MRI kabupaten/kota = rata-rata skor tertimbang empat OPD / 20. Tiap OPD berbobot 25%. Hasil final hanya muncul setelah keempat tugas dikumpulkan.
 - Ekspor hasil CSV dari dashboard; ilustrasi Riskman dan Riskwoman serta bank kasus ikut dalam paket.
@@ -31,7 +34,7 @@ Versi ini memakai **Next.js + Turso/libSQL + Clerk**, menggantikan runtime Cloud
 2. Salin Publishable Key dan Secret Key dari halaman API Keys.
 3. Gunakan development instance untuk uji coba. Untuk penggunaan produksi, ikuti checklist produksi Clerk, konfigurasi domain yang diminta, dan gunakan kunci production dari instance yang sama.
 4. Pengajar harus masuk memakai **email utama terverifikasi** yang ada dalam `TEACHER_EMAILS`.
-5. Peserta membuat akun masing-masing. Satu kelompok membutuhkan empat akun berbeda.
+5. Peserta tidak menggunakan Clerk. Satu kelompok memakai empat perangkat atau profil browser terpisah. Jangan aktifkan kewajiban login di seluruh route aplikasi.
 
 ## 3. Upload ke GitHub
 
@@ -96,11 +99,12 @@ Migrasi membuat tabel, menyimpan versi migrasi, dan aman dijalankan ulang. Tidak
 
 1. Daftar/login dengan email pengajar yang terdaftar, lalu buka ruang pengajar.
 2. Buat kelas, isi nama kota/kabupaten, dan salin kode kelas.
-3. Login dengan empat akun peserta berbeda (gunakan profil browser atau perangkat berbeda).
+3. Buka aplikasi pada empat perangkat/profil browser berbeda. Klik Masuk dengan kode kelas, tanpa login.
 4. Masukkan kode yang sama, pilih daerah yang sama, lalu masing-masing pilih OPD berbeda.
-5. Pastikan OPD yang sudah diambil tidak bisa diambil anggota lain; satu akun tidak bisa memegang dua OPD pada kelas yang sama.
+5. Pastikan OPD yang sudah diambil tidak bisa diambil anggota lain; satu browser tidak bisa memegang dua OPD pada kelas yang sama. Muat ulang untuk menguji kelanjutan sesi.
 6. Kerjakan dan kumpulkan tugas. Dashboard harus menampilkan 1/4, 2/4, 3/4, lalu 4/4 selesai. MRI daerah baru tampil pada 4/4.
 7. Buka rincian OPD, periksa tahap penilaian, jawaban keliru, acuan, dan alasan. Uji unduh CSV.
+8. Pada rincian OPD, klik Reset akses, lalu konfirmasi. Browser lama harus kehilangan akses; perangkat baru masuk memakai kode kelas, memilih OPD tersebut, dan melanjutkan jawaban dengan waktu mulai yang sama.
 
 ## Menjalankan lokal
 
@@ -119,21 +123,21 @@ npm run typecheck
 npm run build
 ```
 
-`npm test` menggunakan database lokal sementara, bukan database kelas. Identitas uji disuntikkan hanya di test harness; route produksi selalu membaca sesi Clerk, tidak mempercayai header identitas kiriman browser.
+`npm test` menggunakan database lokal sementara, bukan database kelas. Identitas pengajar uji disuntikkan hanya di test harness; route produksi membaca sesi Clerk untuk pengajar dan cookie sesi acak untuk peserta. Header identitas kiriman browser tidak dipercaya. Tes peserta memakai cookie asli dari respons join, migrasi libSQL lokal, reset akses, pencabutan sesi, dan perhitungan gabungan.
 
 ## Troubleshooting
 
 - **Tidak dapat masuk / Clerk key invalid:** pastikan kedua key berasal dari instance Clerk yang sama, konfigurasi domain sesuai instance, dan redeploy setelah perubahan.
-- **Akun peserta, akses pengajar belum diberikan:** masukkan email utama terverifikasi ke `TEACHER_EMAILS`, redeploy, lalu login ulang.
+- **Email belum terdaftar sebagai pengajar:** masukkan email utama terverifikasi ke `TEACHER_EMAILS`, redeploy, lalu login ulang.
 - **Gangguan penyimpanan:** cek Turso URL/token dan pastikan `npm run db:migrate` berhasil pada database yang sama dengan Vercel.
-- **OPD sudah dipegang:** lanjutkan dengan akun anggota yang memilihnya. Setiap OPD hanya dipegang satu akun.
+- **OPD sudah dipegang:** lanjutkan pada browser yang memilihnya. Jika perangkat berganti atau cookie hilang, minta pengajar mereset akses dari rincian OPD. Setiap OPD dipegang satu sesi browser.
 - **Waktu habis:** kumpulkan jawaban yang sudah tersimpan. Mengganti perangkat tidak mengulang timer.
 - **MRI daerah belum muncul:** pastikan keempat OPD sudah mengumpulkan, lalu perbarui dashboard.
 - **Build gagal karena env:** isi semua Clerk environment variables sebelum build/deploy; contoh placeholder bukan kunci yang valid.
 
 ## Catatan data dan operasional
 
-Bank kasus berada di `lib/riskman/bank.json`; kunci tidak disajikan sebagai berkas publik. Data kasus adalah simulasi. MRI permainan bukan asesmen maturitas organisasi yang sebenarnya. Aplikasi tidak menyediakan pemulihan/penggantian anggota OPD melalui UI; rencanakan akun anggota sebelum mulai. Pengajar dapat menutup/membuka kelas, tetapi timer tidak diulang.
+Bank kasus berada di `lib/riskman/bank.json`; kunci tidak disajikan sebagai berkas publik. Data kasus adalah simulasi. MRI permainan bukan asesmen maturitas organisasi yang sebenarnya. Pengajar dapat mereset akses OPD melalui rincian kelompok → pilih OPD → Reset akses. Browser lama dicabut aksesnya, lalu peserta menggunakan kode kelas pada perangkat pengganti. Cookie peserta berlaku 30 hari; penghapusan cookie atau mode privat yang ditutup memerlukan reset akses. Pembatasan satu OPD berlaku per browser per kelas, bukan verifikasi identitas orang. Kode kelas hanya dibagikan kepada peserta kelas tersebut. Pengajar dapat menutup/membuka kelas, tetapi timer tidak diulang.
 
 Paket ini bukan hasil deploy ke akun Vercel Anda. Uji login nyata dan koneksi database cloud perlu dilakukan setelah Anda mengisi kredensial dan deploy. Tarif/kuota layanan mengikuti akun dan paket masing-masing penyedia.
 
